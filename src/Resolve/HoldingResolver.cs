@@ -183,7 +183,7 @@ public sealed class HoldingResolver
         var (worn, enumerations) = LoadSightings(cn);
         return new HoldingResolver(
             LoadMoves(cn), worn, enumerations, LoadLocationNames(cn), LoadContainers(cn),
-            LoadWornContainers(cn), PlaceCatalog.Load(cn, db), asOf ?? DateTimeOffset.UtcNow, LoadUpdates(cn));
+            LoadWornContainers(cn), PlaceCatalog.Load(cn), asOf ?? DateTimeOffset.UtcNow, LoadUpdates(cn));
     }
 
     /// <summary>
@@ -404,7 +404,7 @@ public sealed class HoldingResolver
                     var place = Places.ByLocationId(key);
                     if (place is not null)
                     {
-                        chain.Add(new HoldingLink(kind, key, place.Name));
+                        chain.Add(new HoldingLink(kind, key, place.Label));
 
                         // Where the item is does not depend on the label, so it costs nothing,
                         // but the label is our guess and says so.

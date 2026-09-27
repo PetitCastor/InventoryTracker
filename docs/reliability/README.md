@@ -305,8 +305,8 @@ the player jumped to right before entering it, `ab_mine_stanton3_sml_003`.
 
 **Naming by quantum arrival.** The parser now reads the selected quantum point and the
 drive's arrival. The first location entered within 10 seconds of arriving gets that point
-as `arrival` evidence. `PlaceCatalog` uses it only as a last resort, after a hand-written
-override, a route name and the game's inventory name. The name reads "near
+as `arrival` evidence. `PlaceCatalog` uses it only as a last resort, after a route name
+and the game's inventory name (translated by `KnownPlaces` where it can be). The name reads "near
 ab_mine_stanton3_sml_003", and the holding says the name is ours, not the game's.
 
 The check against the corpus: for every id the game also paired with an inventory name,

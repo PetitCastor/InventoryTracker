@@ -201,6 +201,24 @@ public sealed class LogIngestorTests : IDisposable
     }
 
     [Fact]
+    public void A_landing_zone_named_only_internally_is_shown_with_its_planet_and_system()
+    {
+        // Nothing but the internal string ever named Area18 here, and "Stanton3_Area18" is
+        // not something the player would recognise; the orbit number is: ArcCorp.
+        Append(SpawnAtArea18());
+        new LogIngestor(_db, _dir).IngestAll();
+
+        var place = PlaceCatalog.Load(_db).ByLocationId("2273540638");
+
+        Assert.NotNull(place);
+        Assert.Equal("Area18", place.Name);
+        Assert.False(place.NameVerified);
+        Assert.Equal("ArcCorp", place.Planet);
+        Assert.Equal("Area18 — ArcCorp (Stanton)", place.Label);
+        Assert.Equal("Area18 — ArcCorp", place.LabelInSystem); // the picker already names the system
+    }
+
+    [Fact]
     public void A_sessions_spawn_is_its_first_location_even_across_passes()
     {
         // Only the first arrival is the spawn; a later stop in the same file must not replace

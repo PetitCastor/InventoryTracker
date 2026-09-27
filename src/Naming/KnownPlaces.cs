@@ -9,7 +9,7 @@ namespace InventoryTracker.Naming;
 /// planet out from Stanton), a station on a planet's low orbit or one of its Lagrange points
 /// ("RR_ARC_LEO", "RR_CRU_L4"), and a few one-offs ("Nyx_Levski"). Station names are not in
 /// the string at all, so they come from this table, checked against starcitizen.tools.
-/// Anything missing from it is left to the name votes and place_override.json rather than
+/// Anything missing from it is left to the name votes, or shown as logged, rather than
 /// guessed — which includes the jump-point gateways, whose internal strings are legacy
 /// asset names ("RR_JP_NyxCastra" is Stanton Gateway).
 /// </para>

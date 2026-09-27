@@ -1,16 +1,8 @@
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using InventoryTracker.Data;
 using Microsoft.Data.Sqlite;
 
 namespace InventoryTracker.Naming;
-
-/// <summary>A hand-written correction for a place the logs never corroborated.</summary>
-public sealed class PlaceOverride
-{
-    public string? Name { get; set; }
-    public string? System { get; set; }
-}
 
 /// <summary>
 /// Somewhere with a local inventory, as the player would name it.
@@ -79,38 +71,31 @@ public sealed partial class PlaceCatalog
     public static Place Unnamed(string id) =>
         new(id, [id], $"Unnamed place {id}", Place.UnknownSystem, null, false, false);
 
-    /// <summary>Where hand-written corrections live, alongside the store they correct.</summary>
-    public static string OverridePathFor(TrackerDb db) =>
-        Path.Combine(Path.GetDirectoryName(Path.GetFullPath(db.Path)) ?? ".", "place_override.json");
-
     public static PlaceCatalog Load(TrackerDb db)
     {
         using var cn = db.Open();
-        return Load(cn, db);
+        return Load(cn);
     }
 
     /// <summary>Same as <see cref="Load(TrackerDb)"/>, but on a connection the caller already
     /// has open — for a caller loading several tables in one unit of work.</summary>
-    public static PlaceCatalog Load(SqliteConnection cn, TrackerDb db) =>
+    public static PlaceCatalog Load(SqliteConnection cn) =>
         Build(
             LoadRawNames(cn),
             LoadEvidence(cn, "name"),
             LoadEvidence(cn, "system"),
-            LoadEvidence(cn, "arrival"),
-            LoadOverrides(OverridePathFor(db)));
+            LoadEvidence(cn, "arrival"));
 
     private static PlaceCatalog Build(
         Dictionary<string, (string Raw, int Evidence)> rawNames,
         Dictionary<string, List<(string Value, int Hits)>> nameVotes,
         Dictionary<string, List<(string Value, int Hits)>> systemVotes,
-        Dictionary<string, List<(string Value, int Hits)>> arrivalVotes,
-        Dictionary<string, PlaceOverride> overrides)
+        Dictionary<string, List<(string Value, int Hits)>> arrivalVotes)
     {
         // Sightings also attach to the pseudo-ids the client uses in open space ("Hurston",
         // "Aberdeen"). Those are resolvable but are not stations, so they are named on
         // request and kept out of the browsable list.
         var ids = rawNames.Keys
-            .Concat(overrides.Keys)
             .Concat(nameVotes.Keys)
             .Concat(systemVotes.Keys)
             .Concat(arrivalVotes.Keys)
@@ -136,10 +121,10 @@ public sealed partial class PlaceCatalog
 
             var canonical = aliases[0];
             var raw = rawNames.GetValueOrDefault(canonical).Raw;
-            var over = aliases.Select(overrides.GetValueOrDefault).FirstOrDefault(o => o is not null);
             var zone = raw is null ? null : KnownPlaces.FromRaw(raw);
 
-            var name = over?.Name ?? Winner(aliases, nameVotes);
+            // A string KnownPlaces cannot read stays as the game logged it, untranslated.
+            var name = Winner(aliases, nameVotes);
             var nameVerified = name is not null;
             name ??= zone?.Place ?? raw;
 
@@ -155,8 +140,7 @@ public sealed partial class PlaceCatalog
             // containers, so at a gateway the asset evidence is a coin flip — while the
             // internal name encodes the host system correctly even when its place name is
             // long obsolete.
-            var system = over?.System
-                ?? (raw is null ? null : SystemFromRaw(raw))
+            var system = (raw is null ? null : SystemFromRaw(raw))
                 ?? Winner(aliases, systemVotes)
                 ?? (point is null ? null : SystemFromRaw(point))
                 ?? Place.UnknownSystem;
@@ -168,7 +152,7 @@ public sealed partial class PlaceCatalog
 
             // Only somewhere the game paired with an internal inventory name is a station
             // the player can browse; the rest are just names for ids seen in passing.
-            if (raw is not null || over is not null) stations.Add(canonical);
+            if (raw is not null) stations.Add(canonical);
         }
 
         var index = new Dictionary<string, Place>(StringComparer.Ordinal);
@@ -247,7 +231,7 @@ public sealed partial class PlaceCatalog
     /// <i>name</i> wrong — "RR_JP_NyxCastra" is called Stanton Gateway in game — but the
     /// system they sit in is still encoded correctly, which is why this is preferred over
     /// streamed-asset evidence. Anything it cannot decide is left explicitly unknown rather
-    /// than guessed, so it surfaces in diagnostics and can be fixed in place_override.json.
+    /// than guessed, so it surfaces in diagnostics.
     /// </summary>
     internal static string? SystemFromRaw(string raw)
     {
@@ -299,23 +283,5 @@ public sealed partial class PlaceCatalog
             rows.Add((r.GetString(1), r.GetInt32(2)));
         }
         return map;
-    }
-
-    private static Dictionary<string, PlaceOverride> LoadOverrides(string path)
-    {
-        if (!File.Exists(path)) return [];
-
-        try
-        {
-            var parsed = JsonSerializer.Deserialize<Dictionary<string, PlaceOverride>>(
-                File.ReadAllText(path),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return parsed ?? [];
-        }
-        catch (Exception ex) when (ex is JsonException or IOException)
-        {
-            // A malformed override file must not take the whole catalogue down with it.
-            return [];
-        }
     }
 }

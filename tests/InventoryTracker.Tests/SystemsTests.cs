@@ -78,8 +78,7 @@ public class PlaceCatalogSystemTests
     [Fact]
     public void Leaves_an_undecidable_string_explicitly_unknown()
     {
-        // Guessing here would bury the problem; null surfaces it in diagnostics and can be
-        // corrected in place_override.json.
+        // Guessing here would bury the problem; null surfaces it in diagnostics.
         Assert.Null(PlaceCatalog.SystemFromRaw("SOMETHING_UNRECOGNISED"));
     }
 }

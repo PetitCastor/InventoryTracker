@@ -183,7 +183,7 @@ public sealed class HoldingResolver
         var (worn, enumerations) = LoadSightings(cn);
         return new HoldingResolver(
             LoadMoves(cn), worn, enumerations, LoadLocationNames(cn), LoadContainers(cn),
-            LoadWornContainers(cn), PlaceCatalog.Load(cn, db), asOf ?? DateTimeOffset.UtcNow, LoadUpdates(cn));
+            LoadWornContainers(cn), PlaceCatalog.Load(cn), asOf ?? DateTimeOffset.UtcNow, LoadUpdates(cn));
     }
 
     /// <summary>

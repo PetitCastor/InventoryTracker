@@ -144,7 +144,7 @@ else
                 <select @bind="_placeId" @bind:after="Recompute">
                     @foreach (var place in _placesInSystem)
                     {
-                        <option value="@place.Id">@place.Name</option>
+                        <option value="@place.Id">@place.Label</option>
                     }
                 </select>
             </div>
@@ -157,7 +157,7 @@ else
             @if (_path.Count > 0)
             {
                 <div class="crumbs">
-                    <button type="button" class="link-btn" @onclick="() => LeaveTo(0)">@_place.Name</button>
+                    <button type="button" class="link-btn" @onclick="() => LeaveTo(0)">@_place.Label</button>
                     @for (var i = 0; i < _path.Count; i++)
                     {
                         var depth = i + 1;

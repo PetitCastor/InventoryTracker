@@ -24,6 +24,9 @@ public sealed class PlaceOverride
 /// The quantum destination the name comes from, when nothing better names the place: the
 /// point the player jumped to right before entering it.
 /// </param>
+/// <param name="Planet">Where a known place sits, read from its internal string: the planet
+/// for a landing zone or orbital station ("Stanton3_Area18" is on ArcCorp), the Lagrange
+/// point for a rest stop ("Crusader L4"); null when the string names nothing on record.</param>
 public sealed record Place(
     string Id,
     IReadOnlyList<string> AliasIds,
@@ -32,9 +35,16 @@ public sealed record Place(
     string? RawName,
     bool NameVerified,
     bool SystemVerified,
-    string? QuantumPoint = null)
+    string? QuantumPoint = null,
+    string? Planet = null)
 {
     public const string UnknownSystem = "Unknown system";
+
+    /// <summary>The place as shown to the player: "Area18 — ArcCorp (Stanton)".</summary>
+    public string Label =>
+        Name
+        + (Planet is null ? "" : $" — {Planet}")
+        + (System == UnknownSystem ? "" : $" ({System})");
 }
 
 /// <summary>
@@ -127,10 +137,11 @@ public sealed partial class PlaceCatalog
             var canonical = aliases[0];
             var raw = rawNames.GetValueOrDefault(canonical).Raw;
             var over = aliases.Select(overrides.GetValueOrDefault).FirstOrDefault(o => o is not null);
+            var zone = raw is null ? null : KnownPlaces.FromRaw(raw);
 
             var name = over?.Name ?? Winner(aliases, nameVotes);
             var nameVerified = name is not null;
-            name ??= raw;
+            name ??= zone?.Place ?? raw;
 
             // The last resort: the quantum point the player arrived at. It is the only name a
             // spot in open space ever gets. Where the game also paired an id with its inventory
@@ -151,7 +162,7 @@ public sealed partial class PlaceCatalog
                 ?? Place.UnknownSystem;
 
             var place = new Place(
-                canonical, aliases, name, system, raw, nameVerified, system != Place.UnknownSystem, point);
+                canonical, aliases, name, system, raw, nameVerified, system != Place.UnknownSystem, point, zone?.Planet);
 
             places.Add(place);
 

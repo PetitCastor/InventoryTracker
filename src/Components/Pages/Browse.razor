@@ -144,7 +144,7 @@ else
                 <select @bind="_placeId" @bind:after="Recompute">
                     @foreach (var place in _placesInSystem)
                     {
-                        <option value="@place.Id">@place.Label</option>
+                        <option value="@place.Id">@place.LabelInSystem</option>
                     }
                 </select>
             </div>

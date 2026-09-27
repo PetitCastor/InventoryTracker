@@ -283,7 +283,7 @@ internal static class Cli
         {
             var flags = (place.NameVerified ? "" : " [name unverified]") +
                         (place.SystemVerified ? "" : " [system inferred]");
-            Console.WriteLine($"  {place.System,-14} {place.Name,-38} {string.Join(",", place.AliasIds)}{flags}");
+            Console.WriteLine($"  {place.System,-14} {place.LabelInSystem,-46} {string.Join(",", place.AliasIds)}{flags}");
             if (place.RawName is { } raw && raw != place.Name) Console.WriteLine($"  {"",-14} logged internally as {raw}");
         }
     }

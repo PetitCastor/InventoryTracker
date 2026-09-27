@@ -215,6 +215,7 @@ public sealed class LogIngestorTests : IDisposable
         Assert.False(place.NameVerified);
         Assert.Equal("ArcCorp", place.Planet);
         Assert.Equal("Area18 — ArcCorp (Stanton)", place.Label);
+        Assert.Equal("Area18 — ArcCorp", place.LabelInSystem); // the picker already names the system
     }
 
     [Fact]

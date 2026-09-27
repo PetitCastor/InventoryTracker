@@ -34,9 +34,11 @@ public sealed record Place(
 
     /// <summary>The place as shown to the player: "Area18 — ArcCorp (Stanton)".</summary>
     public string Label =>
-        Name
-        + (Planet is null ? "" : $" — {Planet}")
-        + (System == UnknownSystem ? "" : $" ({System})");
+        LabelInSystem + (System == UnknownSystem ? "" : $" ({System})");
+
+    /// <summary>The label where the system is already on screen: "Area18 — ArcCorp".</summary>
+    public string LabelInSystem =>
+        Name + (Planet is null ? "" : $" — {Planet}");
 }
 
 /// <summary>

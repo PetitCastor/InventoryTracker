@@ -124,9 +124,9 @@ public static partial class KnownPlaces
         var station = Station().Match(raw);
         if (station.Success
             && Bodies.TryGetValue(station.Groups["body"].Value, out var body)
-            && Stations.TryGetValue($"{station.Groups["body"].Value}_{station.Groups["slot"].Value}", out var name))
+            && Stations.TryGetValue($"{station.Groups["body"].Value}_{station.Groups["slot"].Value}", out var name)
+            && Planets.TryGetValue(body, out var planet))
         {
-            var planet = Planets[body];
             var slot = station.Groups["slot"].Value.ToUpperInvariant();
             return (name, slot == "LEO" ? planet : $"{planet} {slot}");
         }

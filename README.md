@@ -1,27 +1,29 @@
 # Inventory Tracker
 
-Ever stashed a rifle in a 2 SCU box three stations ago and had no idea where it went? Same.
+Ever stashed a rifle in a 2 SCU box three stations ago and forgotten where it went? Same.
 
-Inventory Tracker watches Star Citizen's `Game.log` while you play and reconstructs where your stuff actually is by replaying every move it sees — drags, drops, stows, container transfers, the works. No manual logging, no spreadsheet. Just play, and the tracker builds the picture from what the game already writes to disk.
+Inventory Tracker reads Star Citizen's `Game.log` while you play and works out where your items are. No manual logging, no spreadsheet: just play.
 
 ## How it works
 
-Star Citizen never hands you a clean inventory snapshot — there's no "here's everything you own" event. What it does log, constantly, is *movement*: an item leaving one place and landing in another. Inventory Tracker reads that stream and replays it forward, so "where's my pants" becomes a lookup instead of a memory test.
+Star Citizen never logs a full inventory snapshot. It does log every *movement*: an item leaving one place and arriving in another. The tracker replays those movements in order, so "where are my pants?" becomes a lookup.
 
-It runs as a small tray app with a local web UI (`http://localhost:5730`) — browse by system and station, drill into a container's contents, or trace one item's full history.
+It runs as a tray app with a local web UI at `http://localhost:5730`. Browse by system and station, open a container to see what it holds, or follow one item's full history.
 
-Because it's built entirely from inferred deltas over an unknown starting state, every result comes with a confidence score and, where relevant, a caveat explaining exactly what's uncertain about it (an unconfirmed move, a guessed container location, a possible duplicate). It's a well-evidenced lower bound on what you own and where — not a guarantee.
+The tracker never sees your starting inventory, so it infers everything from the moves. Each result carries a confidence score and, where it applies, a note on what is uncertain (an unconfirmed move, a guessed container location, a possible duplicate). Treat the results as a well-evidenced minimum of what you own and where, not a guarantee.
 
 ## Running it
 
-Download the latest build: **[InventoryTracker.exe](https://github.com/PetitCastor/inventory-tracker/releases/latest/download/InventoryTracker.exe)**. It is a single self-contained file with no installer and no .NET prerequisite. Put it in any folder you can write to and run it. Each time the tray app starts, it checks for a newer release and, if there is one, updates itself in place and restarts. Console mode (`--scan`) never updates.
+Download **[InventoryTracker.exe](https://github.com/PetitCastor/inventory-tracker/releases/latest/download/InventoryTracker.exe)**. It is a single self-contained file: no installer, no .NET needed. Put it in any writable folder and run it.
+
+The tray app checks for a newer release each time it starts, and updates itself and restarts if it finds one. Console mode (`--scan`) never updates.
 
 ```
 InventoryTracker.exe                     tray app + UI at http://localhost:5730
 InventoryTracker.exe --scan --holdings   console mode, no UI
 ```
 
-First launch walks you through picking your Star Citizen log folder and an inception date (everything logged before that is ignored). The tracker probes the usual install locations, so the folder is usually already filled in.
+On first launch you pick your Star Citizen log folder (usually pre-filled, since the tracker checks the common install locations) and an inception date. Anything logged before that date is ignored.
 
 ## Building it
 
@@ -31,17 +33,19 @@ dotnet test InventoryTracker.slnx
 .\publish.ps1
 ```
 
-`publish.ps1` produces a single self-contained `dist\InventoryTracker.exe` with no .NET prerequisite, using the version in the `VERSION` file. Every merge to `main` cuts a new GitHub Release regardless of whether that PR touched `VERSION`: CI releases whatever's in the file if it's ahead of the latest published release (a deliberate minor/major bump), otherwise it patch-bumps past the latest release on its own.
+`publish.ps1` builds a single self-contained `dist\InventoryTracker.exe` using the version in the `VERSION` file.
+
+Every merge to `main` cuts a GitHub Release. If `VERSION` is ahead of the latest release (a deliberate minor or major bump), CI releases that version. Otherwise it bumps the patch number by itself.
 
 ## Layout
 
 | Path | What's in it |
 |---|---|
-| `src/Ingest` | Reading `Game.log` and turning lines into typed events |
-| `src/Resolve` | Replaying those events into "what is sitting where" |
-| `src/Naming` | Class names → human names, location ids → places |
+| `src/Ingest` | Reads `Game.log` and turns lines into typed events |
+| `src/Resolve` | Replays events into "what is sitting where" |
+| `src/Naming` | Class names to human names, location ids to places |
 | `src/Components` | The Blazor UI |
 | `src/App` | Tray host, config, shared state |
-| `tests/` | Parser, ledger and reader tests, and the replay reliability study (`tests/InventoryTracker.Tests/Reliability`) |
+| `tests/` | Parser, ledger and reader tests, plus the replay reliability study (`tests/InventoryTracker.Tests/Reliability`) |
 | `docs/domain` | Reverse-engineering notes on the log format |
 | `docs/reliability` | How trustworthy the replay is, measured per pipeline stage, and the plan to improve it |
